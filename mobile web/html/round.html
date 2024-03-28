@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8">
+      <title>state</title>
+	   <link type="text/css" href="../css/login.css" rel="stylesheet">
+   </head>
+   <body>
+      <form>
+        <div class="container">
+            <h1>寫作系統</h1>
+            <button type="button" id="button" class="cbtn">登出</button>
+        </div>
+
+        <input type="button" id="round" name="round" value="練習">
+        <br><br><br>
+        <input type="button" id="round1" name="round1" value="課程主題" disabled>
+        <br><br><br>
+        <!-- <input type="button" id="round2" name="round2" value="主題2"> -->
+        <!-- <br><br><br> -->
+        <!-- <input type="button" id="round3" name="round3" value="Round3"> -->
+      </form>
+
+
+      <script type="module">
+
+        import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js';
+        import { db,auth } from '../js/DB.js';
+        import { doc, collection, addDoc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js';
+
+
+        // const auth = getAuth();
+        const button = document.getElementById("button");
+        const round =  document.querySelector('#round');
+        const round1 =  document.querySelector('#round1');
+        // const round2 =  document.querySelector('#round2');
+        // const round3 =  document.querySelector('#round3');
+
+        async function createRoundCollection(uid, roundName) {
+            const userDocRef = doc(collection(db, 'users'), uid);
+            const roundCollectionRef = doc(collection(userDocRef, roundName), uid);
+
+            // 检查回合子文档是否存在
+            const roundDocSnapshot = await getDoc(roundCollectionRef);
+
+            if (!roundDocSnapshot.exists()) {
+                // 如果回合子文档不存在，创建它
+                await setDoc(roundCollectionRef, {});
+                console.log(`${roundName} 子文档已创建`);
+            } else {
+                console.log(`${roundName} 子文档已存在`);
+            }
+        }
+
+        onAuthStateChanged(auth, currentUser => {
+            if (!currentUser) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        button.addEventListener("click", () => {
+            // 登出
+            signOut(auth).then(() => {
+                // Sign-out successful.
+                // 在這裡可以添加登出後的相應處理，例如重新導向到登入頁面
+                window.location.href = 'state.html';
+            }).catch((error) => {
+                // An error happened.
+                console.error("登出時發生錯誤", error);
+            });
+        });
+
+        round.addEventListener('click', () => {
+            createRoundCollection(auth.currentUser.uid, 'Round0');
+            window.location.href = `writing0.html?round=Round0`;
+        });
+
+        round1.addEventListener('click', () => {
+            createRoundCollection(auth.currentUser.uid, 'Round1');
+            window.location.href = `photo.html?round=Round1`;
+        });
+
+        // round2.addEventListener('click', () => {
+        //     createRoundCollection(auth.currentUser.uid, 'Round2');
+        //     window.location.href = `photo.html?round=Round2`;
+        // });
+
+        // round3.addEventListener('click', () => {
+        //     createRoundCollection(auth.currentUser.uid, 'Round3');
+        //     window.location.href = `photo.html?round=Round3`;
+        // });
+
+      </script>
+
+
+   </body>
+
+</html>

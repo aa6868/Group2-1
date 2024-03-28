@@ -1,0 +1,188 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: #FCFCFC;
+    font-family: Arial, sans-serif;
+    margin-bottom: 60px;
+}
+
+form {
+    background-color: #FCFCFC;
+    border-radius: 15px;
+    box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.5);
+    margin: 50px auto;
+    max-width: 350px;
+    padding: 30px;
+ }
+
+ .header2 {
+    position: fixed;
+    bottom: 0;
+    background-color: #D0D0D0;
+    color: white;
+    padding: 10px;
+    border-radius: 60px;
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 置中 */
+    justify-content: flex-end; /* 靠下對齊 */
+    justify-content: space-between;  
+}
+.header-buttons {
+    display: flex;
+    gap: 40px;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column; /* 將內容垂直排列 */
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.fixed-text {
+    margin-top: 0; /* 將 margin-top 設為 0，緊貼在按鈕的底部 */
+    text-align: center; /* 文字置中 */
+}
+
+.button1 {
+    background: url('../image.jpg') no-repeat center center;
+  }
+  .button2 {
+    background: url('../translate.jpg') no-repeat center center;
+  }
+  .button3 {
+    background: url('../help2.jpg') no-repeat center center;
+    margin-left: auto; /* 靠右對齊 */
+  }
+  .button4{    
+    background: url('../submit.jpg') no-repeat center center;
+  }
+
+  .button5{    
+    background: url('../logout.jpg') no-repeat center center;
+  }
+
+  .button4:hover{
+    background-color: darkgreen;
+  }
+  .button1, .button2, .button4 {
+    background-size: cover;
+    background-color: white;
+    width: 50px;
+    height: 50px;
+    border: none;
+    cursor: pointer;
+    margin: 5px;
+    border-radius: 50%;
+    box-shadow: 0px 0px 15px 0px;
+    transition: background-color 0.3s ease;
+}
+
+.button3{
+    background-size: cover;
+    background-color: white;
+    width: 35px;
+    height: 35px;
+    border: none;
+    cursor: pointer;
+    margin: 5px;
+    border-radius: 50%;
+    box-shadow: 0px 0px 5px 0px;
+    transition: background-color 0.3s ease;
+}
+
+.button5{
+    background-size: cover;
+    background-color: white;
+    width: 35px;
+    height: 35px;
+    border: none;
+    cursor: pointer;
+    margin: 5px;
+    border-radius: 35%;
+    transition: background-color 0.3s ease;
+}
+.button4{
+    width: 80px;
+    height: 80px;
+}
+
+.button1:hover, .button2:hover, .button3:hover, .button4:hover {
+    background-color: #e9eb91; /* 滑鼠悬停時的背景顏色 */
+}
+
+textarea {
+    height: 650px;
+    width: 350px;
+    resize: none;
+    font-size: 18px;
+    border: none; /* 去除邊框 */
+}
+
+#userImage {
+    max-width: 100%; /* 圖片最大寬度為其父容器的100% */
+    height: auto; /* 保持原始比例 */
+}
+
+.modal{
+    padding: 1em;
+    max-width: 50ch;
+    
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* 將子元素靠上對齊 */
+    align-items: flex-end;
+    padding: 10px;
+    position: relative; /* 添加相對位置，以便 absolute 定位參考 */
+}
+
+.close-button-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.close-button {
+    margin: 0;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+}
+
+.dialog-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.from-text, .from-to, .translateBtn {
+    width: 60%;
+    height: 5vh;
+    margin-bottom: 10px; /* 添加底部間距 */
+    border-radius: 8px;
+    
+}
+
+.translateBtn {
+    width: 50%;
+    height: 4vh; /* 讓按鈕佔滿父元素的寬度 */
+    background-color: green; /* 初始绿色 */
+    color: white; /* 文本颜色 */
+    border: none; /* 移除按钮边框 */
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* 添加过渡效果 */
+    border-radius: 15px;
+}
+
+.translateBtn:hover {
+    background-color: darkgreen; /* 滑鼠悬停时的深绿色 */
+}

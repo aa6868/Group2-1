@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html >
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link type="text/css" href="../css/photo.css" rel="stylesheet">
+        <title>圖片選擇器</title>
+    </head>
+    <body>
+    <form>
+    <h1>選取圖片</h1>
+    <!-- 图片框 -->
+    <img id="selectedImage" src="" alt="Selected Image">
+
+    <!-- 選擇圖片 -->
+    <input type="file" accept="image/*" id="imageInput" style="display: none;">
+    <img src="../image.jpg" alt="选择照片" onclick="openImagePicker()" style="cursor: pointer;" id="chooseImageButton">
+    <script>
+        function openImagePicker() {
+            // 触发文件选择框
+            document.getElementById('imageInput').click();
+        }
+    </script>
+
+    <label><strong>點擊上方按鈕選取照片</strong></label>
+    <br>
+    <button type="button" id="button" class="done">確認</button>
+    </form>
+
+    <script type="module">
+        import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js'
+        import { db, auth, storage } from '../js/DB.js';
+        import { doc, collection, addDoc, setDoc  } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js';
+        import { ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-storage.js';
+        
+
+
+        let selectedFile;
+
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const round = urlParams.get('round');
+
+        // 当用户选择了图片后触发的事件
+        document.getElementById('imageInput').addEventListener('change', function (event) {
+            // 获取选择的文件
+            selectedFile = event.target.files[0];
+
+            if (selectedFile) {
+                // 读取文件并显示在图片框中
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('selectedImage').src = e.target.result;
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        });
+
+        
+        onAuthStateChanged(auth, async currentUser => {
+            if(currentUser){
+                const uid = currentUser.uid;
+                const done = document.querySelector('.done');
+
+                done.addEventListener('click',async () => {
+                    const selectedImage = document.getElementById('selectedImage');
+                    const selectedImageSrc = selectedImage.getAttribute('src');
+
+                    if (!selectedImageSrc || selectedImageSrc === "") {
+                        alert("請選取照片");
+                    } else {
+                        const confirmation = confirm("確定利用此照片寫作嗎？");
+                        // 在这里可以根据用户的选择执行相应的操作
+                        if (confirmation) {
+                            try {
+                                const fileName = Date.now() + '_' + selectedFile.name;
+
+                                // 獲取對Firebase Storage服務的引用
+                                
+                                const storageRef = ref(storage, 'images/' + fileName);
+
+                                // 將 File 對象上傳到Firebase Storage
+                                const metadata = { contentType: selectedFile.type };
+                                const uploadTask = uploadBytesResumable(storageRef, selectedFile, metadata);
+
+                                // Listen for state changes, errors, and completion of the upload.
+                                uploadTask.on('state_changed',
+                                (snapshot) => {
+                                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                    console.log('Upload is ' + progress + '% done');
+                                },
+                                (error) => {
+                                    console.error('Error:', error);
+                                },
+                                async () => {
+                                    // Upload completed successfully, now we can get the download URL
+                                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+                                    const userDocRef = doc(db, 'users', uid); // 在 'users' 集合中指向特定使用者文檔的參考
+
+                                    // 創建一個新的 'round' 子集合，並在其中創建一個文件，文件名為 'uid'
+                                    const roundDocRef = doc(collection(userDocRef, round), uid);
+
+
+                                    // 將資料存入新文件
+                                    await setDoc(roundDocRef, {
+                                        photo: downloadURL,
+                                        // fileName: fileName,
+                                        // uploadTime: new Date().toISOString(),
+                                    });
+
+                                    console.log('Image information stored in Firestore');
+
+                                    // 上傳和存儲信息後，如果需要，可以處理進一步的操作
+                                    window.location.href = `writing.html?round=${round}`;
+                                }
+                                );
+
+                                } catch (error) {
+                                console.error('Error:', error);
+                                }
+                            
+                        }
+                    }
+                    
+                });
+            }
+        });
+    </script>
+
+    </body>
+</html>

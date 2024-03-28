@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State</title>
+    <link type="text/css" href="../css/writing.css" rel="stylesheet">
+</head>
+   <body>
+    
+    <div class="header2">
+        <div class="header-buttons">
+            <div class="button-container">
+                <button type="button" class="button1"></button>
+                <div class="fixed-text">圖片</div>
+            </div>
+    
+            <dialog class="modal" id="modal">
+                <div class="modal-content">
+                    <img id="userImage" alt="User Image">
+                    <div class="close-button-container">
+                        <button class="close-button">X</button>
+                    </div>
+                </div>
+            </dialog>
+    
+            <div class="button-container">
+                <button type="button" class="button4"></button>
+                <div class="fixed-text">提交</div>
+            </div>
+    
+            <div class="button-container">
+                <button type="button" class="button2"></button>
+                <div class="fixed-text">翻譯</div>
+            </div>
+        </div>
+    </div>
+      <br>
+      <div class="header" style="text-align: center;">
+        <h2>創作頁</h2>
+    </div>
+
+      <div class="main-content" style="text-align: center;">
+        <form >
+            <button type="button"  class="button5" style="float: left;"></button>
+            <button type="button"  class="button3" style="float: right;"></button>
+            <br><br>
+            <div id="counter" class="counter">當前字數 0 </div>
+            <textarea class="content" name="textarea" id="textarea" placeholder="請輸入文字...."></textarea>
+         </form>
+      </div>
+      
+      
+
+   <script type="module">
+
+      import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js'
+      import { collection, getDocs, setDoc, doc, query, where } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js';
+      import { db,auth } from '../js/DB.js';
+
+      
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      const round = urlParams.get('round');
+
+      let uid; // 声明 uid 为全局变量
+
+        onAuthStateChanged(auth, currentUser => {
+            if (currentUser) {
+                uid = currentUser.uid; // 赋值给全局变量
+            }
+        });
+
+      const modal = document.querySelector('#modal');
+      const closeModalButton = document.querySelector('.close-button');
+    //   const button1 = document.querySelector('.button1');
+      const button2 = document.querySelector('.button2');
+      const button3 = document.querySelector('.button3');
+      const button4 = document.querySelector('.button4');
+      const button5 = document.querySelector('.button5');
+      const textarea = document.getElementById('textarea');
+      const counter = document.getElementById('counter');
+
+      textarea.addEventListener('input', function() {
+        // 获取 textarea 中的文字
+        let inputText = textarea.value;
+
+        // 移除多餘的空格
+        inputText = inputText.trim();
+
+        // 將文本按照空格分割成單詞
+        const words = inputText.split(/\s+/);
+
+        // 過濾空字串
+        const filteredWords = words.filter(word => word !== '');
+
+        // 計算單詞數量
+        const wordCount = filteredWords.length;
+
+        // 如果字數超過最大限制，則截斷多餘的部分
+        // if (wordCount > maxCharacters) {
+        //     filteredWords.splice(maxCharacters);
+        // }
+
+        // 更新計數器顯示
+        counter.textContent = '當前字數 ' + wordCount ;
+      });
+      
+    //   button1.addEventListener('click', () => {
+    //         // Simulate fetching image data from the database
+    //         const userImage = document.querySelector('#userImage');
+            
+    //         // 创建查询以获取特定用户和回合的文档
+    //         const userRoundQuery = query(collection(db, 'users', uid, round), where('photo', '!=', ''));
+
+    //         // 获取回合中的文档
+    //         getDocs(userRoundQuery).then(querySnapshot => {
+    //             if (querySnapshot.size > 0) {
+    //                 const userData = querySnapshot.docs[0].data();
+    //                 userImage.src = userData.photo;
+
+                    
+
+    //                 modal.showModal();
+    //             } else {
+    //                 console.error('找不到指定使用者和回合的文檔，或沒有可用的照片。');
+    //             }
+    //         }).catch(error => {
+    //             console.error('取得用戶資料時發生錯誤：', error);
+    //         });
+    //     });
+
+        closeModalButton.addEventListener('click', () => {
+            modal.close();
+        });
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        
+        button2.addEventListener('click', () => {
+            // Create a new dialog for button2
+            const button2Dialog = document.createElement('dialog');
+            button2Dialog.innerHTML = `
+                <div class="dialog-content">
+                    <textarea class="from-text" placeholder="在此輸入中文"></textarea>
+                    <textarea class="from-to" disabled></textarea>                    
+                    <button class="translateBtn">翻譯</button>
+                </div>
+                `;
+
+            document.body.appendChild(button2Dialog);
+            const fromText = button2Dialog.querySelector(".from-text");
+            fromText.addEventListener('input', function() {
+                // 獲取textarea中的文字
+                let inputText = fromText.value;
+
+                // 如果文字長度超過4個字，就截斷多餘的部分
+                if (inputText.length > 6) {
+                    inputText = inputText.substring(0, 6);
+                    fromText.value = inputText;
+                }
+            });
+
+            const translateBtn = button2Dialog.querySelector(".translateBtn");
+            const fromTo = button2Dialog.querySelector(".from-to");
+
+            translateBtn.addEventListener("click", () =>{
+                let text = fromText.value;
+                let apiUrl = `https://api.mymemory.translated.net/get?q=${text}!&langpair=zh-TW|en`;
+                fetch(apiUrl)
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log(data);
+                        if (data.matches && data.matches.length >= 2) {
+                                fromTo.value = data.matches[1].translation;
+                            } else {
+                                fromTo.value = data.responseData.translatedText;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('翻譯時發生錯誤：', error);
+                        });
+            });
+
+            // Add close button for the custom dialog
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'X';
+            closeButton.classList.add('close-button');
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '0';
+            closeButton.style.right = '0';
+            closeButton.addEventListener('click', () => {
+                button2Dialog.close();
+            });
+
+            // Append the close button to the dialog content
+            button2Dialog.appendChild(closeButton);
+
+            // document.body.appendChild(button2Dialog);
+            button2Dialog.showModal();
+        });
+
+
+        button3.addEventListener('click', () => {
+            // Create a new dialog for the third button
+            const thirdButtonDialog = document.createElement('dialog');
+            thirdButtonDialog.innerHTML = '<div style="text-align: center;">幫助</div>' +
+                '<br>1.選擇主題： 選擇一個你感興趣或熟悉的主題。這可以是一個經歷、觀察、想法或故事情節。<br>' +
+                '2.確定故事結構： 確定你的文章結構，包括開始、中間和結尾。<br>' +
+                '3.釐清主要信息： 確定你想要傳達的主要信息或情感，避免故事偏離主題。<br>' +
+                '4.引人入勝的開頭： 引人入勝的開頭來吸引讀者的注意力。<br>' +
+                '5.結尾： 回顧故事中的主題，盡量給讀者留下想像空間。';
+
+            // Set the width of the dialog
+            thirdButtonDialog.style.width = '60%'; // 請根據需要調整寬度
+
+            // Add close button for the custom dialog (right at the top-right corner)
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'X';
+            closeButton.classList.add('close-button');
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '0';
+            closeButton.style.right = '0';
+            closeButton.addEventListener('click', () => {
+                thirdButtonDialog.close();
+            });
+
+            // Append the close button to the dialog content
+            thirdButtonDialog.appendChild(closeButton);
+            
+
+            // Append the dialog to the body
+            document.body.appendChild(thirdButtonDialog);
+
+            // Show the dialog
+            thirdButtonDialog.showModal();
+        });
+
+        onAuthStateChanged(auth, async currentUser => {
+            if(currentUser){
+                const uid = currentUser.uid;
+                const done = document.querySelector('.button4');
+
+                button4.addEventListener('click', async () => {
+                    const textareaContent = document.getElementById('textarea').value;
+                    console.log(textareaContent)
+
+                    if(textareaContent != null){
+                        const confirmSubmission = confirm('確定繳交嗎?');
+                        if (confirmSubmission) {
+                                const userDocRef = doc(db, 'users', uid); // 在 'users' 集合中指向特定使用者文檔的參考
+
+                                // 創建一個新的 'round' 子集合，並在其中創建一個文件，文件名為 'uid'
+                                const roundDocRef = doc(collection(userDocRef, round), uid);
+                                
+
+                                // 將資料存入新文件
+                                await setDoc(roundDocRef, {
+                                    text: textareaContent
+                                });
+
+                                window.location.href =  'round.html';
+                        }else {
+                            console.log('Submission canceled.');
+                        }
+                    }
+                });
+            }
+        });
+
+        button5.addEventListener('click', async () => {
+            // 显示确认消息
+            const confirmMessage = "如果要離開此頁將須重新選擇照片及撰寫";
+            if (confirm(confirmMessage)) {
+                // 如果用户确认，则重定向到 round.html 页面
+                window.location.href = 'round.html';
+            }
+        });
+
+
+   </script>
+   </body>
+</html>
